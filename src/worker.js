@@ -1,6 +1,7 @@
 import { EmailMessage } from "cloudflare:email";
 import { createMimeMessage } from "mimetext";
-import { Octokit } from "octokit";
+import { UploadTrack } from './sportsTrackLive.mjs';
+import { UploadLogEntry } from "./lib.mjs";
 
 const PostalMime = require("postal-mime");
 
@@ -34,35 +35,8 @@ async function sendEmail(event, parsedEmail, data) {
   await event.reply(message);
 }
 
-async function UploadLogEntry(filename, igc, comment, token) {
-  const content = igc;
-  const path = filename.slice(0, filename.lastIndexOf('.'));
 
-  console.log("TODO:  Upload markdown for ", comment);
-
-  const octokit = new Octokit({
-    auth: token
-  });
-
-  await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
-    owner: 'scottyob',
-    repo: 'paragliding-logbook',
-    path: `flights/${path}/${filename}`,
-    message: `Added flight ${path}`,
-    content: content,
-    committer: {
-      name: "Email IGC Uploader",
-      email: "logbook@scottyob.com",
-    },
-    author: {
-      name: "Email IGC Uploader",
-      email: "logbook@scottyob.com",
-    },
-  });
-  console.log("Done committing");
-}
-
-async function processEmail(event, token) {
+async function processEmail(event, token, stlKey, stlPassword, stlEmail) {
   const rawEmail = await streamToArrayBuffer(event.raw, event.rawSize);
   const parser = new PostalMime.default();
   const parsedEmail = await parser.parse(rawEmail);
@@ -80,11 +54,15 @@ async function processEmail(event, token) {
   const binaryString = uint8Array.reduce((str, byte) => str + String.fromCharCode(byte), '');
   const base64String = btoa(binaryString);
 
-  console.log("Attachment base64: ", base64String);
+  // console.log("Attachment base64: ", base64String);
 
-  await UploadLogEntry(attachment.filename, base64String, parsedEmail.text ?? "", token);
+  // Upload to sports track live
+  const trackUrl = await UploadTrack(base64String, stlKey, stlPassword, stlEmail);
 
-  // Upload the attachment to github
+  // Then to Github
+  await UploadLogEntry(attachment.filename, base64String, parsedEmail.text ?? "", token, trackUrl);
+
+  // Reply to e-mail with confirmation
   await sendEmail(event, parsedEmail, "Uploaded to github!");
   console.log("Done uploading");
 }
@@ -99,7 +77,13 @@ export default {
     if (!substrMatch.some(m => m)) {
       message.setReject(`Address ${message.headers.get('from')} not allowed`);
     } else {
-      await processEmail(message, env.TOKEN);
+      await processEmail(
+        message, 
+        env.TOKEN,
+        env.STLKEY,
+        env.STLPASS,
+        env.STLEMAIL,
+      );
     }
   }
 }
