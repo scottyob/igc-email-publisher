@@ -130,4 +130,4 @@ dist
 .pnp.*
 
 # Test files
-test/*
+src/test/env.mjs

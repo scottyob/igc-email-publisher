@@ -1,5 +1,4 @@
-import fetch, { File } from 'node-fetch';
-import FormData from "form-data";
+// import FormData from "form-data";
 
 // Documentation @ https://api.sportstracklive.com/v1/documentation
 
@@ -33,10 +32,11 @@ async function getToken(email, key, password) {
 }
 
 async function UploadTrack(trackContent, email, key, pass) {
-  const fileBuffer = Buffer.from(trackContent, "base64")
+  // const fileBuffer = Buffer.from(trackContent, "base64");
+  const fileBuffer = new Blob([atob(trackContent)], { type: 'application/octet-stream' });
 
   // Build the upload request
-  const form = FormData();
+  const form = new FormData();
   form.append('track[category_name]', 'paragliding');
   form.append('track[track_type]', 'classic_track');
 
@@ -45,9 +45,10 @@ async function UploadTrack(trackContent, email, key, pass) {
 
   const url = 'https://api.sportstracklive.com/v1/track';
 
+  const token =  await getToken(email, key, pass);
+
   const header = {
-    "X-STL-Token": await getToken(email, key, pass),
-    ...form.getHeaders(),
+    "X-STL-Token": token,
   };
 
   const reqData = {
@@ -59,6 +60,7 @@ async function UploadTrack(trackContent, email, key, pass) {
   const req = await fetch(url, reqData);
 
   const reqJson = await req.json();
+
   return reqJson.track.permalink_3d_url;
 
 }

@@ -54,10 +54,8 @@ async function processEmail(event, token, stlKey, stlPassword, stlEmail) {
   const binaryString = uint8Array.reduce((str, byte) => str + String.fromCharCode(byte), '');
   const base64String = btoa(binaryString);
 
-  // console.log("Attachment base64: ", base64String);
-
   // Upload to sports track live
-  const trackUrl = await UploadTrack(base64String, stlKey, stlPassword, stlEmail);
+  const trackUrl = await UploadTrack(base64String, stlEmail, stlKey, stlPassword);
 
   // Then to Github
   await UploadLogEntry(attachment.filename, base64String, parsedEmail.text ?? "", token, trackUrl);
