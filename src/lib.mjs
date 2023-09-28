@@ -12,6 +12,7 @@ export async function UploadLogEntry(filename, igc, comment, token, sportsTrackL
   });
 
   const commentsText = dedent`
+    ---
     sportsTrackLiveUrl: ${sportsTrackLiveUrl}
     ---
     ${comment}
