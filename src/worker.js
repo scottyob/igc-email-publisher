@@ -36,7 +36,7 @@ async function sendEmail(event, parsedEmail, data) {
 }
 
 
-async function processEmail(event, token, stlKey, stlPassword, stlEmail) {
+async function processEmail(event, token, stlKey, stlPassword, stlEmail, hookId) {
   const rawEmail = await streamToArrayBuffer(event.raw, event.rawSize);
   const parser = new PostalMime.default();
   const parsedEmail = await parser.parse(rawEmail);
@@ -60,6 +60,11 @@ async function processEmail(event, token, stlKey, stlPassword, stlEmail) {
   // Then to Github
   await UploadLogEntry(attachment.filename, base64String, parsedEmail.text ?? "", token, trackUrl);
 
+  // Send a request to build
+  await fetch(`https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/${hookId}`, {
+    method: "POST"
+  });
+
   // Reply to e-mail with confirmation
   await sendEmail(event, parsedEmail, "Uploaded to github!");
   console.log("Done uploading");
@@ -81,6 +86,7 @@ export default {
         env.STLKEY,
         env.STLPASS,
         env.STLEMAIL,
+        env.HOOKID,
       );
     }
   }
