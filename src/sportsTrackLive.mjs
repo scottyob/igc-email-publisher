@@ -32,6 +32,12 @@ async function getToken(email, key, password) {
 }
 
 async function UploadTrack(trackContent, email, key, pass) {
+  // console.log("Track Content: ", trackContent);
+  // console.log("Email: ", email);
+  // console.log("Key: ", key);
+  // console.log("Pass: ", pass);
+
+
   // const fileBuffer = Buffer.from(trackContent, "base64");
   const fileBuffer = new Blob([atob(trackContent)], { type: 'application/octet-stream' });
 
@@ -46,6 +52,7 @@ async function UploadTrack(trackContent, email, key, pass) {
   const url = 'https://api.sportstracklive.com/v1/track';
 
   const token =  await getToken(email, key, pass);
+  // console.log("Got token: ", token);
 
   const header = {
     "X-STL-Token": token,
@@ -57,9 +64,21 @@ async function UploadTrack(trackContent, email, key, pass) {
     headers: header
   };
 
-  const req = await fetch(url, reqData);
+  // console.log("Request to sports track live: ", reqData);
+  // Display the key/value pairs
+  for (var pair of form.entries()) {
+    console.log(pair[0]+ ', ' + pair[1]); 
+  }
 
+  // Make the call to sports track live
+  const req = await fetch(url, reqData);
+  console.log("Sports track live upload returned: ", req.statusText);
+  if(!req.ok) {
+    console.log("Error text: ", await req.text());
+  }
+  
   const reqJson = await req.json();
+  console.log("Sports track live upload returned JSON: ", JSON.stringify(req, null, 2));
 
   return reqJson.track.permalink_3d_url;
 

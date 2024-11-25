@@ -21,3 +21,10 @@ npm run start
 ```
 npx wrangler deploy
 ```
+
+## Debugging
+
+You can tail logs by using
+```
+npx wrangler tail
+```

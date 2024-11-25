@@ -1,7 +1,10 @@
 name = "solitary-hill-b948"
 main = "src/worker.js"
-compatibility_date = "2023-05-30"
+compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat" ]
+
+[observability.logs]
+enabled = true
 
 # # KV Namespace binding - For more information: https://developers.cloudflare.com/workers/runtime-apis/kv
 # [[kv_namespaces]]
